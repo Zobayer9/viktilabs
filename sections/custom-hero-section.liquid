@@ -1,0 +1,328 @@
+{{ 'custom-hero-section.css' | asset_url | stylesheet_tag }}
+
+{% liquid
+  assign image1 = section.settings.image1
+  assign image2 = section.settings.image2
+  assign mobile_image = section.settings.mobile_image | default: image2 | default: image1
+
+  assign content_position = section.settings.content_position
+  assign show_scrim = section.settings.show_content_background
+%}
+
+<section
+  class="hero-banner"
+  style="
+    --hb-bg: {{ section.settings.bg_color }};
+    --hb-text: {{ section.settings.text_color }};
+    --hb-accent: {{ section.settings.accent_color }};
+    --hb-accent-text: {{ section.settings.accent_text_color }};
+    --hb-content-width: {{ section.settings.content_max_width }}px;
+    --hb-content-bg: {{ section.settings.content_bg_color }};
+    --hb-content-bg-opacity: {{ section.settings.content_bg_opacity }}%;
+    --hb-min-height-desktop: {{ section.settings.min_height_desktop }}px;
+    --hb-min-height-mobile: {{ section.settings.min_height_mobile }}px;
+  "
+>
+  <div class="hero-banner__media">
+    {% if image1 %}
+      {{
+        image1
+        | image_url: width: 1600
+        | image_tag:
+          widths: '375, 750, 1100, 1600, 2000',
+          sizes: '100vw',
+          loading: 'eager',
+          fetchpriority: 'high',
+          width: 1600,
+          height: 900,
+          class: 'hero-banner__image hero-banner__image--primary',
+          alt: image1.alt | default: section.settings.title
+      }}
+    {% endif %}
+
+    {% if image2 %}
+      {% liquid
+        assign image2_class = 'hero-banner__image hero-banner__image--secondary is-' | append: section.settings.image2_position
+      %}
+      {{
+        image2
+        | image_url: width: 1000
+        | image_tag:
+          widths: '375, 640, 800, 1000',
+          sizes: '(min-width: 750px) 50vw, 100vw',
+          loading: 'eager',
+          fetchpriority: 'auto',
+          width: 1000,
+          height: 1000,
+          class: image2_class,
+          alt: image2.alt | default: section.settings.title
+      }}
+    {% endif %}
+
+    {% if mobile_image %}
+      {{
+        mobile_image
+        | image_url: width: 1200
+        | image_tag:
+          widths: '375, 640, 800, 1200',
+          sizes: '100vw',
+          loading: 'eager',
+          fetchpriority: 'high',
+          width: 1200,
+          height: 1200,
+          class: 'hero-banner__image hero-banner__image--mobile',
+          alt: mobile_image.alt | default: section.settings.title
+      }}
+    {% endif %}
+
+    {% unless image1 or image2 or mobile_image %}
+      <div class="hero-banner__placeholder">
+        {{ 'lifestyle-1' | placeholder_svg_tag }}
+      </div>
+    {% endunless %}
+  </div>
+
+  <div class="hero-banner__content-wrap" data-position="{{ content_position }}">
+    <div class="hero-banner__content{% if show_scrim %} hero-banner__content--scrim{% endif %}">
+      {% if section.settings.title != blank %}
+        <h2 class="hero-banner__title">{{ section.settings.title }}</h2>
+      {% endif %}
+
+      {% if section.settings.subtitle != blank %}
+        <p class="hero-banner__subtitle">{{ section.settings.subtitle }}</p>
+      {% endif %}
+
+      {% if section.settings.description != blank %}
+        <div class="hero-banner__description">{{ section.settings.description }}</div>
+      {% endif %}
+
+      {% if section.settings.button_label != blank %}
+        <a
+          class="hero-banner__button"
+          href="{{ section.settings.button_link | default: '#' }}"
+          {% if section.settings.button_link == blank %}role="link" aria-disabled="true"{% endif %}
+        >
+          {{ section.settings.button_label }}
+        </a>
+      {% endif %}
+
+      {% if section.settings.badge_text != blank %}
+        <div class="hero-banner__badge">
+          {% if section.settings.badge_icon != blank %}
+            <img
+              class="hero-banner__badge-icon"
+              src="{{ section.settings.badge_icon | image_url: width: 40 }}"
+              width="18"
+              height="14"
+              loading="lazy"
+              alt=""
+            >
+            <span class="hero-banner__badge-divider" aria-hidden="true">|</span>
+          {% endif %}
+          <span>{{ section.settings.badge_text }}</span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero banner",
+  "tag": "section",
+  "class": "section-hero-banner-wrapper",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Images"
+    },
+    {
+      "type": "image_picker",
+      "id": "image1",
+      "label": "Background image",
+      "info": "Displays at full width"
+    },
+    {
+      "type": "image_picker",
+      "id": "image2",
+      "label": "Overlay image (optional)",
+      "info": "Desktop only. Displays at 50% width, layered on top of the background image."
+    },
+    {
+      "type": "select",
+      "id": "image2_position",
+      "label": "Overlay image position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_image",
+      "label": "Mobile image (optional)",
+      "info": "Falls back to the overlay image, then the background image, if not set"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "select",
+      "id": "content_position",
+      "label": "Content position (desktop)",
+      "info": "On mobile, content always sits at the top of the image",
+      "options": [
+        { "value": "top-left", "label": "Top left" },
+        { "value": "top-center", "label": "Top center" },
+        { "value": "top-right", "label": "Top right" },
+        { "value": "middle-left", "label": "Middle left" },
+        { "value": "middle-center", "label": "Middle center" },
+        { "value": "middle-right", "label": "Middle right" },
+        { "value": "bottom-left", "label": "Bottom left" },
+        { "value": "bottom-center", "label": "Bottom center" },
+        { "value": "bottom-right", "label": "Bottom right" }
+      ],
+      "default": "middle-left"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "More vitality & energy in everyday life."
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subtitle",
+      "default": "High-quality, nature-based nutritional supplements"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Discover the power of nature and the effectiveness of the laboratory in our high-quality nutritional supplements with essential vitamins and vital substances.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Shop now"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Trust badge"
+    },
+    {
+      "type": "image_picker",
+      "id": "badge_icon",
+      "label": "Badge icon (optional)"
+    },
+    {
+      "type": "text",
+      "id": "badge_text",
+      "label": "Badge text",
+      "default": "Quality products developed in Germany"
+    },
+    {
+      "type": "header",
+      "content": "Content box style"
+    },
+    {
+      "type": "range",
+      "id": "content_max_width",
+      "label": "Content max width",
+      "min": 320,
+      "max": 700,
+      "step": 20,
+      "unit": "px",
+      "default": 480
+    },
+    {
+      "type": "checkbox",
+      "id": "show_content_background",
+      "label": "Show background behind content",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "content_bg_color",
+      "label": "Content background color",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "range",
+      "id": "content_bg_opacity",
+      "label": "Content background opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 85
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Section background",
+      "default": "#F7F7F5"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#1A1A1A"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Button background",
+      "default": "#F5A623"
+    },
+    {
+      "type": "color",
+      "id": "accent_text_color",
+      "label": "Button text",
+      "default": "#1A1A1A"
+    },
+    {
+      "type": "header",
+      "content": "Section height"
+    },
+    {
+      "type": "range",
+      "id": "min_height_desktop",
+      "label": "Minimum height (desktop)",
+      "min": 320,
+      "max": 800,
+      "step": 20,
+      "unit": "px",
+      "default": 560
+    },
+    {
+      "type": "range",
+      "id": "min_height_mobile",
+      "label": "Minimum height (mobile)",
+      "min": 320,
+      "max": 700,
+      "step": 20,
+      "unit": "px",
+      "default": 480
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero banner"
+    }
+  ]
+}
+{% endschema %}
