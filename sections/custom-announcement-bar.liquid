@@ -1,0 +1,357 @@
+{% liquid
+  assign speed_ms = section.settings.autoplay_speed | times: 1000
+%}
+{{ 'custom-announcement-bar.css' | asset_url | stylesheet_tag }}
+
+<script
+  src="{{ 'custom-announcement-bar.js' | asset_url }}"
+  defer
+></script>
+
+<section
+  class="announcement-bar"
+  aria-label="Store announcements"
+  style="
+    --bar-bg: {{ section.settings.bg_color }};
+    --bar-text: {{ section.settings.text_color }};
+    --bar-accent: {{ section.settings.text_color }};
+    --bar-font-weight: {{ section.settings.font_weight }};
+    --bar-font-size: {{ section.settings.font_size }}px;
+    --bar-padding-y: {{ section.settings.section_padding }}px;
+    --bar-star-fill: {{ section.settings.star_fill_color | default: section.settings.text_color }};
+    --bar-star-empty: {{ section.settings.star_empty_color | default: 'rgba(255,255,255,.35)' }};
+  "
+>
+  <div class="bar_wrapper">
+    <div
+      class="bar_container"
+      data-nav-arrows="{{ section.settings.show_nav_arrows }}"
+    >
+      <div class="bar_rating">
+        {%- if section.settings.show_rating -%}
+          {%- liquid
+            assign rating_raw = section.settings.rating_value | times: 1.0
+            if rating_raw < 0
+              assign rating_raw = 0.0
+            endif
+            if rating_raw > 5
+              assign rating_raw = 5.0
+            endif
+          -%}
+          <span
+            class="bar_stars"
+            role="img"
+            aria-label="Rated {{ section.settings.rating_value }} out of 5 stars"
+          >
+            {%- for i in (0..4) -%}
+              {%- liquid
+                assign star_fill = rating_raw | minus: i
+                if star_fill > 1
+                  assign star_fill = 1.0
+                endif
+                if star_fill < 0
+                  assign star_fill = 0.0
+                endif
+                assign star_percent = star_fill | times: 100 | round
+              -%}
+              <span class="bar_star" aria-hidden="true">
+                <span class="bar_star_bg">
+                  <svg viewBox="0 0 20 20" focusable="false">
+                    <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.8L10 14.77l-5.2 2.75.99-5.8-4.21-4.1 5.82-.85L10 1.5z"/>
+                  </svg>
+                </span>
+                <span class="bar_star_fill" style="--star-fill: {{ star_percent }}%;">
+                  <svg viewBox="0 0 20 20" focusable="false">
+                    <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.8L10 14.77l-5.2 2.75.99-5.8-4.21-4.1 5.82-.85L10 1.5z"/>
+                  </svg>
+                </span>
+              </span>
+            {%- endfor -%}
+          </span>
+          {%- if section.settings.rating_text != blank -%}
+            <span class="bar_rating_text">{{ section.settings.rating_text }}</span>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+
+      {%- if section.blocks.size > 0 -%}
+        <div
+          class="bar_carousel"
+          data-announcement-carousel
+          data-autoplay="{{ section.settings.autoplay }}"
+          data-speed="{{ speed_ms }}"
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Store announcements "
+        >
+          <div class="bar_track_viewport">
+            {%- for block in section.blocks -%}
+              {%- assign slide_index = forloop.index -%}
+              {%- if block.settings.link != blank -%}
+                <a
+                  href="{{ block.settings.link }}"
+                  id="bar-slide-{{ slide_index }}"
+                  class="bar_slide bar_slide--link{% if forloop.first %} is-active{% endif %}"
+                  role="group"
+                  aria-roledescription="slide"
+                  aria-label="{{ slide_index }} of {{ section.blocks.size }}"
+                  aria-hidden="{% unless forloop.first %}true{% else %}false{% endunless %}"
+                  tabindex="{% unless forloop.first %}-1{% else %}0{% endunless %}"
+                  {{ block.shopify_attributes }}
+                >
+                  {{ block.settings.text }}
+                </a>
+              {%- else -%}
+                <div
+                  id="bar-slide-{{ slide_index }}"
+                  class="bar_slide{% if forloop.first %} is-active{% endif %}"
+                  role="group"
+                  aria-roledescription="slide"
+                  aria-label="{{ slide_index }} of {{ section.blocks.size }}"
+                  aria-hidden="{% unless forloop.first %}true{% else %}false{% endunless %}"
+                  {{ block.shopify_attributes }}
+                >
+                  {{ block.settings.text }}
+                </div>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+
+          <span class="sr-only" role="status" aria-live="polite" data-carousel-status></span>
+        </div>
+      {%- endif -%}
+
+      <div class="bar_links">
+        {%- if section.settings.show_contact and section.settings.contact_text != blank -%}
+          <a
+            href="{{ section.settings.contact_link | default: '#' }}"
+            class="bar_link_text"
+          >
+            {{- section.settings.contact_text -}}
+          </a>
+        {%- endif -%}
+
+        {%- if section.settings.show_faq and section.settings.faq_text != blank -%}
+          <a
+            href="{{ section.settings.faq_link | default: '#' }}"
+            class="bar_link_text"
+          >
+            {{- section.settings.faq_text -}}
+          </a>
+        {%- endif -%}
+
+        {%- if section.settings.icon != blank -%}
+          <a href="{{ section.settings.icon_link | default: '#' }}">
+            {{
+              section.settings.icon
+              | image_url: width: 64
+              | image_tag: loading: 'lazy', width: 32, alt: section.settings.icon.alt
+            }}
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Announcement/USP",
+  "tag": "section",
+  "class": "section-announcement-bar",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Colors & typography"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Background color",
+      "default": "#194c39"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font weight",
+      "options": [
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semibold" },
+        { "value": "700", "label": "Bold" }
+      ],
+      "default": "600"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font size",
+      "min": 11,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "label": "Vertical padding",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "header",
+      "content": "Rating / trust badge"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "Show rating badge",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "rating_value",
+      "label": "Rating (out of 5)",
+      "min": 0,
+      "max": 5,
+      "step": 0.1,
+      "default": 4.8,
+      "info": "Controls how many stars appear filled, including partial stars."
+    },
+    {
+      "type": "color",
+      "id": "star_fill_color",
+      "label": "Star fill color",
+      "info": "Leave blank to match the text color."
+    },
+    {
+      "type": "color",
+      "id": "star_empty_color",
+      "label": "Star background color",
+      "default": "#8a8a8a"
+    },
+    {
+      "type": "text",
+      "id": "rating_text",
+      "label": "Rating text",
+      "default": "Rated by over 1 million customers"
+    },
+    {
+      "type": "header",
+      "content": "Carousel behavior"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Auto-rotate announcements",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "Rotation speed",
+      "min": 3,
+      "max": 12,
+      "step": 1,
+      "unit": "s",
+      "default": 5
+    },
+    {
+      "type": "checkbox",
+      "id": "show_nav_arrows",
+      "label": "Show previous/next arrows",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Accessibility labels"
+    },
+    {
+      "type": "header",
+      "content": "Right-side links"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_contact",
+      "label": "Show contact link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "contact_text",
+      "label": "Contact label",
+      "default": "Contact"
+    },
+    {
+      "type": "url",
+      "id": "contact_link",
+      "label": "Contact link"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_faq",
+      "label": "Show FAQ link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "faq_text",
+      "label": "FAQ label",
+      "default": "FAQ"
+    },
+    {
+      "type": "url",
+      "id": "faq_link",
+      "label": "FAQ link"
+    },
+    {
+      "type": "image_picker",
+      "id": "icon",
+      "label": "Icon / logo image"
+    },
+    {
+      "type": "url",
+      "id": "icon_link",
+      "label": "Icon link"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "announcement",
+      "name": "Announcement",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Message",
+          "default": "Free shipping on all orders over $50"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link (optional)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Announcement/USP",
+      "blocks": [
+        { "type": "announcement", "settings": { "text": "Free shipping from€49 *" } },
+        { "type": "announcement", "settings": { "text": "New:Daily Greens Powder" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

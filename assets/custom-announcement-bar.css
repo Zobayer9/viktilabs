@@ -1,0 +1,226 @@
+.announcement-bar .bar_wrapper{
+    background:var(--bar-bg);
+    color:var(--bar-text);
+    font-weight:var(--bar-font-weight);
+    font-size:var(--bar-font-size);
+    padding:var(--bar-padding-y) 16px;
+    width:100%;
+}
+
+.announcement-bar .bar_container{
+    max-width:1380px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:1fr minmax(0,2fr) 1fr;
+    align-items:center;
+    gap:12px;
+}
+
+.announcement-bar .bar_rating{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.announcement-bar .bar_stars{
+    display:inline-flex;
+    gap:2px;
+    align-items:center;
+    flex-shrink:0;
+}
+
+.announcement-bar .bar_star{
+    position:relative;
+    width:14px;
+    height:14px;
+    display:inline-block;
+    flex-shrink:0;
+}
+
+.announcement-bar .bar_star_bg,
+.announcement-bar .bar_star_fill{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+}
+
+.announcement-bar .bar_star_bg{
+    width:100%;
+}
+
+.announcement-bar .bar_star_fill{
+    width:var(--star-fill,0%);
+}
+
+.announcement-bar .bar_star svg{
+    width:14px;
+    height:14px;
+    position:absolute;
+    inset:0;
+}
+
+.announcement-bar .bar_star_bg svg{
+    fill:var(--bar-star-empty);
+}
+
+.announcement-bar .bar_star_fill svg{
+    fill:var(--bar-star-fill);
+}
+
+.announcement-bar .bar_rating span{
+    color:inherit;
+}
+
+.announcement-bar .bar_carousel{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    min-width:0;
+}
+
+.announcement-bar .bar_track_viewport{
+    position:relative;
+    flex:1;
+    min-width:0;
+    overflow:hidden;
+    height:calc(var(--bar-font-size) * 1.6);
+}
+
+.announcement-bar .bar_slide{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(6px);
+    transition:
+        opacity .35s,
+        transform .35s,
+        visibility 0s linear .35s;
+    color:inherit;
+    text-decoration:none;
+}
+
+.announcement-bar .bar_slide.is-active{
+    opacity:1;
+    visibility:visible;
+    transform:none;
+}
+
+.announcement-bar .bar_slide a,
+.announcement-bar .bar_slide--link{
+    color:inherit;
+    text-decoration:underline;
+    text-underline-offset:3px;
+}
+
+.announcement-bar .bar_nav_btn{
+    width:26px;
+    height:26px;
+    border:none;
+    border-radius:50%;
+    background:transparent;
+    color:inherit;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    opacity:.85;
+    padding:0;
+    flex-shrink:0;
+}
+
+.announcement-bar .bar_nav_btn:hover,
+.announcement-bar .bar_nav_btn:focus-visible{
+    opacity:1;
+    background:rgba(255,255,255,.12);
+}
+
+.announcement-bar .bar_nav_btn svg{
+    width:14px;
+    height:14px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:2;
+}
+
+.announcement-bar .bar_play_toggle svg + svg,
+.announcement-bar .bar_play_toggle[data-playing="true"] .icon-play,
+.announcement-bar .bar_play_toggle[data-playing="false"] .icon-pause{
+    display:none;
+}
+
+.announcement-bar [data-nav-arrows="false"] .bar_nav_prev,
+.announcement-bar [data-nav-arrows="false"] .bar_nav_next{
+    display:none;
+}
+
+.announcement-bar .bar_links{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:16px;
+    white-space:nowrap;
+}
+
+.announcement-bar .bar_links a{
+    color:inherit;
+    text-decoration:none;
+}
+
+.announcement-bar .bar_links a:hover,
+.announcement-bar .bar_links a:focus-visible{
+    text-decoration:underline;
+}
+
+.announcement-bar .bar_links img{
+    width:auto;
+    height:16px;
+    display:block;
+}
+
+.announcement-bar .sr-only{
+    position:absolute;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    clip:rect(0,0,0,0);
+    white-space:nowrap;
+    margin:-1px;
+}
+
+.announcement-bar a:focus-visible,
+.announcement-bar button:focus-visible{
+    outline:2px solid currentColor;
+    outline-offset:2px;
+}
+
+@media(max-width:749px){
+
+    .announcement-bar .bar_container{
+        grid-template-columns:auto 1fr auto;
+        gap:8px;
+    }
+
+    .announcement-bar .bar_rating_text,
+    .announcement-bar .bar_link_text{
+        display:none;
+    }
+
+}
+
+@media(prefers-reduced-motion:reduce){
+
+    .announcement-bar .bar_slide{
+        transition:none;
+        transform:none;
+    }
+
+}
