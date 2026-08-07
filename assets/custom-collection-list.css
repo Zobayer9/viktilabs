@@ -1,8 +1,31 @@
+/* 
+   Collection List section
+   Mobile-first , Breakpoints: 750px (tablet), 990px (desktop)
+   */
 
 .collection-list-section {
-  --gap: 1.25rem;
-  padding-top: 3rem;
-  padding-bottom: 3rem;
+  background: var(--cl-bg, #ffffff);
+  padding-top: var(--cl-pt, 48px);
+  padding-bottom: var(--cl-pb, 48px);
+  transition: background 0.2s ease;
+}
+
+/* Tablet */
+@media (min-width: 750px) {
+  .collection-list-section {
+    background: var(--cl-bg-tab, var(--cl-bg, #ffffff));
+    padding-top: var(--cl-pt-tab, 56px);
+    padding-bottom: var(--cl-pb-tab, 56px);
+  }
+}
+
+/* Desktop */
+@media (min-width: 990px) {
+  .collection-list-section {
+    background: var(--cl-bg-desk, var(--cl-bg-tab, var(--cl-bg, #ffffff)));
+    padding-top: var(--cl-pt-desk, 64px);
+    padding-bottom: var(--cl-pb-desk, 64px);
+  }
 }
 
 .collection-list-section__inner {
@@ -11,11 +34,29 @@
   gap: 1.5rem;
 }
 
+/* Heading */
 .collection-list-section__heading {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: var(--cl-heading-size, 28px);
   line-height: 1.2;
-  text-align: center;
+  text-align: var(--cl-heading-align, center);
+  color: var(--cl-heading-color, #1a1a1a);
+}
+
+@media (min-width: 750px) {
+  .collection-list-section__heading {
+    font-size: var(--cl-heading-size-tab, 32px);
+    text-align: var(--cl-heading-align-tab, var(--cl-heading-align, center));
+    color: var(--cl-heading-color-tab, var(--cl-heading-color, #1a1a1a));
+  }
+}
+
+@media (min-width: 990px) {
+  .collection-list-section__heading {
+    font-size: var(--cl-heading-size-desk, 36px);
+    text-align: var(--cl-heading-align-desk, var(--cl-heading-align-tab, var(--cl-heading-align, center)));
+    color: var(--cl-heading-color-desk, var(--cl-heading-color-tab, var(--cl-heading-color, #1a1a1a)));
+  }
 }
 
 /* Carousel shell */
@@ -29,7 +70,7 @@
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x proximity;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
 }
 
 .collection-list-carousel__viewport::-webkit-scrollbar {
@@ -45,21 +86,39 @@
 /* Track */
 .collection-list {
   display: flex;
-  gap: var(--gap);
+  gap: var(--cl-gap, 20px);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+@media (min-width: 750px) {
+  .collection-list {
+    gap: var(--cl-gap-tab, var(--cl-gap, 20px));
+  }
+}
+
+@media (min-width: 990px) {
+  .collection-list {
+    gap: var(--cl-gap-desk, var(--cl-gap-tab, var(--cl-gap, 20px)));
+  }
+}
+
 .collection-list__item {
   flex: 0 0 auto;
   scroll-snap-align: start;
-  width: calc((100% - (var(--gap) * (var(--columns-mobile) - 1))) / var(--columns-mobile));
+  width: calc((100% - (var(--cl-gap, 20px) * (var(--columns-mobile) - 1))) / var(--columns-mobile));
 }
 
 @media (min-width: 750px) {
   .collection-list__item {
-    width: calc((100% - (var(--gap) * (var(--columns-desktop) - 1))) / var(--columns-desktop));
+    width: calc((100% - (var(--cl-gap-tab, var(--cl-gap, 20px)) * (var(--columns-desktop) - 1))) / var(--columns-desktop));
+  }
+}
+
+@media (min-width: 990px) {
+  .collection-list__item {
+    width: calc((100% - (var(--cl-gap-desk, var(--cl-gap-tab, var(--cl-gap, 20px))) * (var(--columns-desktop) - 1))) / var(--columns-desktop));
   }
 }
 
@@ -100,16 +159,31 @@
 
 .collection-list__title {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--cl-title-size, 16px);
   font-weight: 600;
   text-align: center;
+  color: var(--cl-title-color, #1a1a1a);
+}
+
+@media (min-width: 750px) {
+  .collection-list__title {
+    font-size: var(--cl-title-size-tab, var(--cl-title-size, 16px));
+    color: var(--cl-title-color-tab, var(--cl-title-color, #1a1a1a));
+  }
+}
+
+@media (min-width: 990px) {
+  .collection-list__title {
+    font-size: var(--cl-title-size-desk, var(--cl-title-size-tab, var(--cl-title-size, 16px)));
+    color: var(--cl-title-color-desk, var(--cl-title-color-tab, var(--cl-title-color, #1a1a1a)));
+  }
 }
 
 .collection-list__card--empty {
   cursor: default;
 }
 
-/* Nav arrows: overlay the card row, vertically centered, pinned to the edges */
+/* Nav arrows */
 .collection-list-carousel__nav {
   position: absolute;
   inset: 0;
@@ -158,5 +232,15 @@
 @media (max-width: 749px) {
   .collection-list-section--hide-mobile {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collection-list-carousel__viewport {
+    scroll-behavior: auto;
+  }
+  .collection-list__image,
+  .collection-list-section {
+    transition: none;
   }
 }

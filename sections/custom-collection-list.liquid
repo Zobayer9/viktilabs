@@ -8,10 +8,51 @@
   assign block_count = section.blocks.size
 -%}
 
+<style>
+  #CollectionList-{{ section.id }} {
+    --columns-desktop: {{ columns_desktop }};
+    --columns-mobile: {{ columns_mobile }};
+    --card-radius: {{ radius }}px;
+
+    /* Mobile */
+    --cl-pt: {{ section.settings.padding_top_mobile }}px;
+    --cl-pb: {{ section.settings.padding_bottom_mobile }}px;
+    --cl-heading-size: {{ section.settings.heading_font_size_mobile }}px;
+    --cl-title-size: {{ section.settings.title_font_size_mobile }}px;
+    --cl-gap: {{ section.settings.card_gap_mobile }}px;
+    --cl-bg: {{ section.settings.bg_color_mobile }};
+    --cl-heading-color: {{ section.settings.heading_color_mobile }};
+    --cl-title-color: {{ section.settings.title_color_mobile }};
+    --cl-heading-align: {{ section.settings.heading_align_mobile }};
+
+    /* Tablet */
+    --cl-pt-tab: {{ section.settings.padding_top_tablet }}px;
+    --cl-pb-tab: {{ section.settings.padding_bottom_tablet }}px;
+    --cl-heading-size-tab: {{ section.settings.heading_font_size_tablet }}px;
+    --cl-title-size-tab: {{ section.settings.title_font_size_tablet }}px;
+    --cl-gap-tab: {{ section.settings.card_gap_tablet }}px;
+    --cl-bg-tab: {{ section.settings.bg_color_tablet }};
+    --cl-heading-color-tab: {{ section.settings.heading_color_tablet }};
+    --cl-title-color-tab: {{ section.settings.title_color_tablet }};
+    --cl-heading-align-tab: {{ section.settings.heading_align_tablet }};
+
+    /* Desktop */
+    --cl-pt-desk: {{ section.settings.padding_top_desktop }}px;
+    --cl-pb-desk: {{ section.settings.padding_bottom_desktop }}px;
+    --cl-heading-size-desk: {{ section.settings.heading_font_size_desktop }}px;
+    --cl-title-size-desk: {{ section.settings.title_font_size_desktop }}px;
+    --cl-gap-desk: {{ section.settings.card_gap_desktop }}px;
+    --cl-bg-desk: {{ section.settings.bg_color_desktop }};
+    --cl-heading-color-desk: {{ section.settings.heading_color_desktop }};
+    --cl-title-color-desk: {{ section.settings.title_color_desktop }};
+    --cl-heading-align-desk: {{ section.settings.heading_align_desktop }};
+
+  }
+</style>
+
 <section
   id="CollectionList-{{ section.id }}"
   class="collection-list-section{% if section.settings.hide_mobile %} collection-list-section--hide-mobile{% endif %}"
-  style="--columns-desktop: {{ columns_desktop }}; --columns-mobile: {{ columns_mobile }}; --card-radius: {{ radius }}px;"
   data-section-id="{{ section.id }}"
 >
   <div class="collection-list-section__inner page-width">
@@ -167,6 +208,255 @@
       "id": "hide_mobile",
       "label": "Hide this section on mobile",
       "default": false
+    },
+    {
+      "type": "header",
+      "content": "Mobile settings (< 750px)"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "label": "Top padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size_mobile",
+      "label": "Heading font size",
+      "min": 16,
+      "max": 64,
+      "step": 1,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "title_font_size_mobile",
+      "label": "Card title font size",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "card_gap_mobile",
+      "label": "Gap between cards",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "select",
+      "id": "heading_align_mobile",
+      "label": "Heading alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "color",
+      "id": "bg_color_mobile",
+      "label": "Section background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "heading_color_mobile",
+      "label": "Heading color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "title_color_mobile",
+      "label": "Card title color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "header",
+      "content": "Tablet settings (750px – 989px)"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_tablet",
+      "label": "Top padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_tablet",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 56
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size_tablet",
+      "label": "Heading font size",
+      "min": 16,
+      "max": 64,
+      "step": 1,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "title_font_size_tablet",
+      "label": "Card title font size",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "card_gap_tablet",
+      "label": "Gap between cards",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "select",
+      "id": "heading_align_tablet",
+      "label": "Heading alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "color",
+      "id": "bg_color_tablet",
+      "label": "Section background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "heading_color_tablet",
+      "label": "Heading color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "title_color_tablet",
+      "label": "Card title color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "header",
+      "content": "Desktop settings (≥ 990px)"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_desktop",
+      "label": "Top padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_desktop",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size_desktop",
+      "label": "Heading font size",
+      "min": 16,
+      "max": 80,
+      "step": 1,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "title_font_size_desktop",
+      "label": "Card title font size",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "card_gap_desktop",
+      "label": "Gap between cards",
+      "min": 0,
+      "max": 60,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "select",
+      "id": "heading_align_desktop",
+      "label": "Heading alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "color",
+      "id": "bg_color_desktop",
+      "label": "Section background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "heading_color_desktop",
+      "label": "Heading color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "title_color_desktop",
+      "label": "Card title color",
+      "default": "#1a1a1a"
     }
   ],
   "blocks": [
@@ -196,10 +486,11 @@
   ],
   "presets": [
     {
-      "name": "custom collection list",
+      "name": "vikti collection list",
       "blocks": [{ "type": "collection" }, { "type": "collection" }, { "type": "collection" }, { "type": "collection" }]
     }
   ]
 }
 {% endschema %}
+
 
