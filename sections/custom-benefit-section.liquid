@@ -1,0 +1,557 @@
+{{ 'section-benefit.css' | asset_url | stylesheet_tag }}
+
+{% liquid
+  assign show_more_row = section.settings.show_more_row
+  assign more_link = section.settings.more_link
+%}
+
+{% capture check_icon %}
+  <svg class="benefit-section__icon" viewBox="0 0 26 26" aria-hidden="true" focusable="false">
+    <circle cx="13" cy="13" r="13" fill="currentColor" />
+    <path d="m8 13.3 3 3 7-7.2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+{% endcapture %}
+
+{% capture x_icon %}
+  <svg class="benefit-section__icon" viewBox="0 0 26 26" aria-hidden="true" focusable="false">
+    <circle cx="13" cy="13" r="13" fill="currentColor" />
+    <path d="M9 9l8 8M17 9l-8 8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" />
+  </svg>
+{% endcapture %}
+
+<style>
+  #shopify-section-{{ section.id }} .benefit-section{
+    --bf-bg: {{ section.settings.bg_color }};
+    --bf-heading-color: {{ section.settings.heading_color }};
+    --bf-text-color: {{ section.settings.text_color }};
+    --bf-button-bg: {{ section.settings.button_bg }};
+    --bf-button-text: {{ section.settings.button_text }};
+    --bf-benefit-bg: {{ section.settings.benefit_bg }};
+    --bf-benefit-heading-color: {{ section.settings.benefit_heading_color }};
+    --bf-benefit-icon-bg: {{ section.settings.benefit_icon_bg }};
+    --bf-benefit-text-color: {{ section.settings.benefit_text_color }};
+    --bf-disadvantage-bg: {{ section.settings.disadvantage_bg }};
+    --bf-disadvantage-heading-color: {{ section.settings.disadvantage_heading_color }};
+    --bf-disadvantage-icon-bg: {{ section.settings.disadvantage_icon_bg }};
+    --bf-disadvantage-text-color: {{ section.settings.disadvantage_text_color }};
+    --bf-link-color: {{ section.settings.link_color }};
+    --bf-header-width: 30%;
+    --bf-card-gap: {{ section.settings.card_gap }}px;
+
+    /* Mobile padding */
+    --bf-py-mobile: {{ section.settings.padding_mobile }}px;
+
+    /* Mobile font sizes */
+    --bf-heading-size: {{ section.settings.heading_font_size_mobile }}px;
+    --bf-desc-size: {{ section.settings.desc_font_size_mobile }}px;
+    --bf-col-heading-size: {{ section.settings.col_heading_font_size_mobile }}px;
+    --bf-row-size: {{ section.settings.row_font_size_mobile }}px;
+
+    /* Tablet overrides */
+    --bf-py-tab: {{ section.settings.padding_tablet }}px;
+    --bf-heading-size-tab: {{ section.settings.heading_font_size_tablet }}px;
+    --bf-desc-size-tab: {{ section.settings.desc_font_size_tablet }}px;
+    --bf-col-heading-size-tab: {{ section.settings.col_heading_font_size_tablet }}px;
+    --bf-row-size-tab: {{ section.settings.row_font_size_tablet }}px;
+
+    /* Desktop overrides */
+    --bf-py-desk: {{ section.settings.padding_desktop }}px;
+    --bf-heading-size-desk: {{ section.settings.heading_font_size_desktop }}px;
+    --bf-desc-size-desk: {{ section.settings.desc_font_size_desktop }}px;
+    --bf-col-heading-size-desk: {{ section.settings.col_heading_font_size_desktop }}px;
+    --bf-row-size-desk: {{ section.settings.row_font_size_desktop }}px;
+  }
+</style>
+
+<section
+  class="benefit-section"
+>
+  <div class="benefit-section__container">
+    <div class="benefit-section__inner">
+      {% comment %} Child 1: header {% endcomment %}
+      <div class="benefit-section__header">
+        {% if section.settings.heading != blank %}
+          <h2 class="benefit-section__heading">{{ section.settings.heading }}</h2>
+        {% endif %}
+        {% if section.settings.description != blank %}
+          <div class="benefit-section__description">{{ section.settings.description }}</div>
+        {% endif %}
+        {% if section.settings.button_label != blank %}
+          <a class="benefit-section__button" href="{{ section.settings.button_link | default: '#' }}">
+            {{ section.settings.button_label }}
+          </a>
+        {% endif %}
+      </div>
+
+      {% comment %} Child 2: benefit {% endcomment %}
+      <div class="benefit-section__benefit">
+        {% if section.settings.benefit_heading != blank %}
+          <h3 class="benefit-section__col-heading">{{ section.settings.benefit_heading }}</h3>
+        {% endif %}
+        <ul class="benefit-section__list">
+          {% for block in section.blocks %}
+            {% if block.settings.benefit_text != blank %}
+              <li class="benefit-section__row benefit-section__row--benefit" {{ block.shopify_attributes }}>
+                <span>{{ block.settings.benefit_text }}</span>
+                {{ check_icon }}
+              </li>
+            {% endif %}
+          {% endfor %}
+          {% if show_more_row and section.settings.benefit_more_text != blank %}
+            <li class="benefit-section__row benefit-section__row--benefit">
+              {% if more_link != blank %}
+                <a class="benefit-section__more-link" href="{{ more_link }}">
+                  {{- section.settings.benefit_more_text -}}
+                </a>
+              {% else %}
+                <span class="benefit-section__more-link">{{ section.settings.benefit_more_text }}</span>
+              {% endif %}
+              {{ check_icon }}
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+
+      {% comment %} Child 3: disadvantage (hidden on mobile via CSS) {% endcomment %}
+      <div class="benefit-section__disadvantage">
+        {% if section.settings.disadvantage_heading != blank %}
+          <h3 class="benefit-section__col-heading">{{ section.settings.disadvantage_heading }}</h3>
+        {% endif %}
+        <ul class="benefit-section__list">
+          {% for block in section.blocks %}
+            {% if block.settings.disadvantage_text != blank %}
+              <li class="benefit-section__row benefit-section__row--disadvantage" {{ block.shopify_attributes }}>
+                {{ x_icon }}
+                <span>{{ block.settings.disadvantage_text }}</span>
+              </li>
+            {% endif %}
+          {% endfor %}
+          {% if show_more_row and section.settings.disadvantage_more_text != blank %}
+            <li class="benefit-section__row benefit-section__row--disadvantage">
+              {{ x_icon }}
+              {% if more_link != blank %}
+                <a class="benefit-section__more-link" href="{{ more_link }}">
+                  {{- section.settings.disadvantage_more_text -}}
+                </a>
+              {% else %}
+                <span class="benefit-section__more-link">{{ section.settings.disadvantage_more_text }}</span>
+              {% endif %}
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Benefit comparison",
+  "tag": "section",
+  "class": "section-benefit-comparison-wrapper",
+  "max_blocks": 20,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Left column text"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "The subtle difference."
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Quality promise. Our products are manufactured in strictly tested facilities. We rely on natural ingredients, without fillers and unnecessary additives.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Everything about the quality guarantee"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Comparison columns"
+    },
+    {
+      "type": "text",
+      "id": "benefit_heading",
+      "label": "Benefit column heading",
+      "default": "+viktilabs"
+    },
+    {
+      "type": "text",
+      "id": "disadvantage_heading",
+      "label": "Disadvantage column heading",
+      "default": "Other"
+    },
+    {
+      "type": "header",
+      "content": "\"More differences\" row"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_more_row",
+      "label": "Show final linked row",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "benefit_more_text",
+      "label": "Benefit column text",
+      "default": "+ 13 more differences"
+    },
+    {
+      "type": "text",
+      "id": "disadvantage_more_text",
+      "label": "Disadvantage column text",
+      "default": "View all differences"
+    },
+    {
+      "type": "url",
+      "id": "more_link",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "card_gap",
+      "label": "Gap between text and comparison card",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading",
+      "default": "#1A1A1A"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Description text",
+      "default": "#4A5568"
+    },
+    {
+      "type": "color",
+      "id": "button_bg",
+      "label": "Button background",
+      "default": "#F5A623"
+    },
+    {
+      "type": "color",
+      "id": "button_text",
+      "label": "Button text",
+      "default": "#1A1A1A"
+    },
+    {
+      "type": "color",
+      "id": "link_color",
+      "label": "\"More differences\" link",
+      "default": "#2B6CB0"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Section background",
+      "default": "#FAFAFA"
+    },
+    {
+      "type": "color",
+      "id": "benefit_bg",
+      "label": "Benefit column background",
+      "default": "#E3E8D4"
+    },
+    {
+      "type": "color",
+      "id": "disadvantage_bg",
+      "label": "Disadvantage column background",
+      "default": "#EAEAEA"
+    },
+    {
+      "type": "header",
+      "content": "Mobile settings (< 750px)"
+    },
+    {
+      "type": "range",
+      "id": "padding_mobile",
+      "label": "padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size_mobile",
+      "label": "Heading font size",
+      "min": 16,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "desc_font_size_mobile",
+      "label": "Description font size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "col_heading_font_size_mobile",
+      "label": "Column heading font size",
+      "min": 16,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "row_font_size_mobile",
+      "label": "Row text font size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "Tablet settings (750px – 989px)"
+    },
+    {
+      "type": "range",
+      "id": "padding_tablet",
+      "label": "padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size_tablet",
+      "label": "Heading font size",
+      "min": 16,
+      "max": 48,
+      "step": 1,
+      "unit": "px",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "desc_font_size_tablet",
+      "label": "Description font size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "col_heading_font_size_tablet",
+      "label": "Column heading font size",
+      "min": 16,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 22
+    },
+    {
+      "type": "range",
+      "id": "row_font_size_tablet",
+      "label": "Row text font size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "header",
+      "content": "Desktop settings (≥ 990px)"
+    },
+    {
+      "type": "range",
+      "id": "padding_desktop",
+      "label": "Top padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "heading_font_size_desktop",
+      "label": "Heading font size",
+      "min": 16,
+      "max": 64,
+      "step": 1,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "desc_font_size_desktop",
+      "label": "Description font size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "col_heading_font_size_desktop",
+      "label": "Column heading font size",
+      "min": 16,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 22
+    },
+    {
+      "type": "range",
+      "id": "row_font_size_desktop",
+      "label": "Row text font size",
+      "min": 12,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "header",
+      "content": "Benefit column colors"
+    },
+    {
+      "type": "color",
+      "id": "benefit_heading_color",
+      "label": "Heading",
+      "default": "#1A1A1A"
+    },
+    {
+      "type": "color",
+      "id": "benefit_text_color",
+      "label": "Row text",
+      "default": "#2D3748"
+    },
+    {
+      "type": "color",
+      "id": "benefit_icon_bg",
+      "label": "Icon background",
+      "default": "#4A5D3A"
+    },
+    {
+      "type": "header",
+      "content": "Disadvantage column colors"
+    },
+    {
+      "type": "color",
+      "id": "disadvantage_heading_color",
+      "label": "Heading",
+      "default": "#9A9A9A"
+    },
+    {
+      "type": "color",
+      "id": "disadvantage_text_color",
+      "label": "Row text",
+      "default": "#4A5568"
+    },
+    {
+      "type": "color",
+      "id": "disadvantage_icon_bg",
+      "label": "Icon background",
+      "default": "#1A1A1A"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "comparison_row",
+      "name": "Comparison row",
+      "settings": [
+        {
+          "type": "text",
+          "id": "benefit_text",
+          "label": "Benefit text",
+          "default": "Scientific development in Germany"
+        },
+        {
+          "type": "text",
+          "id": "disadvantage_text",
+          "label": "Disadvantage text",
+          "default": "Often exact copies of overseas formulas"
+        },
+  
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Benefit comparison",
+      "blocks": [
+        {
+          "type": "comparison_row",
+          "settings": {
+            "benefit_text": "Scientific development in Germany",
+            "disadvantage_text": "Often exact copies of overseas formulas"
+          }
+        },
+        {
+          "type": "comparison_row",
+          "settings": {
+            "benefit_text": "Manufacturing & bottling in Germany & the EU",
+            "disadvantage_text": "Manufactured in the Far East or third countries"
+          }
+        },
+        {
+          "type": "comparison_row",
+          "settings": {
+            "benefit_text": "Maximum transparency regarding ingredients",
+            "disadvantage_text": "Partially hidden, undeclared additives"
+          }
+        },
+        {
+          "type": "comparison_row",
+          "settings": {
+            "benefit_text": "Non-GMO (in accordance with EU regulations)",
+            "disadvantage_text": "Often genetically modified raw materials"
+          }
+        },
+        {
+          "type": "comparison_row",
+          "settings": {
+            "benefit_text": "Free from unnecessary fillers & binders",
+            "disadvantage_text": "Use of cheap fillers to increase volume"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
