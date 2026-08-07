@@ -1,0 +1,594 @@
+{{ 'section-testimonials-carousel.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'section-testimonials-carousel.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign rating_number = section.settings.rating_value | times: 1.0
+  if rating_number == 0
+    assign rating_number = 5.0
+  endif
+  assign autoplay_ms = section.settings.autoplay_speed | times: 1000
+  assign prefers_reduced_motion = false
+  if request.design_mode == false
+    assign prefers_reduced_motion = true
+  endif
+-%}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} .testimonials {
+    --testimonials-padding-top: {{ section.settings.padding_top_mobile }}px;
+    --testimonials-padding-bottom: {{ section.settings.padding_bottom_mobile }}px;
+    --testimonials-title-size: {{ section.settings.title_font_size_mobile }}px;
+    --testimonials-quote-size: {{ section.settings.quote_font_size_mobile }}px;
+    --testimonials-author-size: {{ section.settings.author_font_size_mobile }}px;
+    {% if section.settings.background_color != blank %}
+      --testimonials-bg: {{ section.settings.background_color }};
+    {% endif %}
+    {% if section.settings.card_background != blank %}
+      --testimonials-card-bg: {{ section.settings.card_background }};
+    {% endif %}
+    {% if section.settings.heading_color != blank %}
+      --testimonials-heading-color: {{ section.settings.heading_color }};
+    {% endif %}
+    {% if section.settings.text_color != blank %}
+      --testimonials-text-color: {{ section.settings.text_color }};
+    {% endif %}
+    {% if section.settings.muted_color != blank %}
+      --testimonials-muted-color: {{ section.settings.muted_color }};
+    {% endif %}
+  }
+
+  @media screen and (min-width: 750px) {
+    #shopify-section-{{ section.id }} .testimonials {
+      --testimonials-padding-top: {{ section.settings.padding_top_tablet }}px;
+      --testimonials-padding-bottom: {{ section.settings.padding_bottom_tablet }}px;
+      --testimonials-title-size: {{ section.settings.title_font_size_tablet }}px;
+      --testimonials-quote-size: {{ section.settings.quote_font_size_tablet }}px;
+      --testimonials-author-size: {{ section.settings.author_font_size_tablet }}px;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    #shopify-section-{{ section.id }} .testimonials {
+      --testimonials-padding-top: {{ section.settings.padding_top_desktop }}px;
+      --testimonials-padding-bottom: {{ section.settings.padding_bottom_desktop }}px;
+      --testimonials-title-size: {{ section.settings.title_font_size_desktop }}px;
+      --testimonials-quote-size: {{ section.settings.quote_font_size_desktop }}px;
+      --testimonials-author-size: {{ section.settings.author_font_size_desktop }}px;
+    }
+  }
+{%- endstyle -%}
+
+<div class="testimonials color-{{ section.settings.color_scheme }}">
+  <div class="testimonials__inner page-width">
+    {%- comment -%} Rating summary card {%- endcomment -%}
+    <div class="testimonials__summary">
+      {%- if section.settings.rating_link != blank -%}
+        <a
+          href="{{ section.settings.rating_link }}"
+          class="testimonials__summary-link"
+          {% if section.settings.rating_link_new_tab %}
+            target="_blank" rel="noopener noreferrer"
+          {% endif %}
+        >
+      {%- endif -%}
+
+      {%- if section.settings.rating_title != blank -%}
+        <p class="testimonials__summary-title">{{ section.settings.rating_title }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.rating_value != blank -%}
+        {% render 'icon-star-rating', rating: rating_number, size: 'large' %}
+        <p class="testimonials__summary-value">
+          {{ section.settings.rating_value }}
+          {{ 'products.product.rating' | t: default: 'Rating' }}
+        </p>
+      {%- endif -%}
+
+      {%- if section.settings.review_count_label != blank -%}
+        <p class="testimonials__summary-count">{{ section.settings.review_count_label }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.rating_link != blank -%}</a>{%- endif -%}
+    </div>
+
+    {%- if section.blocks.size > 0 -%}
+      <testimonials-carousel
+        class="testimonials__carousel"
+        data-autoplay="{{ section.settings.enable_autoplay }}"
+        data-autoplay-speed="{{ autoplay_ms }}"
+        data-reduced-motion="{{ prefers_reduced_motion }}"
+      >
+        <div
+          class="testimonials__viewport"
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Customer testimonials"
+        >
+          <button
+            type="button"
+            class="testimonials__nav testimonials__nav--prev"
+            aria-label="Previous testimonials"
+          >
+            <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <path d="M12.5 15.5L7 10l5.5-5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+
+          <ul
+            class="testimonials__track"
+            id="testimonials-track-{{ section.id }}"
+            aria-live="polite"
+          >
+            {%- for block in section.blocks -%}
+              {%- liquid
+                assign block_rating = block.settings.rating | times: 1.0
+                assign slide_label="Slide {{ forloop.index }} of {{ forloop.length }}"
+              -%}
+              <li
+                class="testimonials__card"
+                role="group"
+                aria-roledescription="slide"
+                aria-label="{{ slide_label }}"
+                {{ block.shopify_attributes }}
+              >
+                <div class="testimonials__card-header">
+                  {%- if block.settings.author_avatar != blank -%}
+                    <div class="testimonials__avatar">
+                      <img
+                        src="{{ block.settings.author_avatar | image_url: width: 80 }}"
+                        alt="{{ block.settings.author | escape }}"
+                        width="40"
+                        height="40"
+                        loading="lazy"
+                      >
+                    </div>
+                  {%- endif -%}
+
+                  <div class="testimonials__card-meta">
+                    <p class="testimonials__author">{{ block.settings.author }}</p>
+
+                    {%- if section.settings.show_rating_in_card and block.settings.rating > 0 -%}
+                      {% render 'icon-star-rating', rating: block_rating %}
+                    {%- endif -%}
+                  </div>
+                </div>
+
+                {%- if block.settings.verified -%}
+                  <p class="testimonials__badge testimonials__badge--verified">
+                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                      <path d="M8 1l1.8 1 2 .3 1 1.8 1.8 1-.3 2 .3 2-1.8 1-1 1.8-2 .3L8 15l-1.8-1-2-.3-1-1.8L1.4 11l.3-2-.3-2 1.8-1 1-1.8 2-.3z" fill="currentColor" opacity=".15"/>
+                      <path d="M5.5 8.2l1.7 1.7 3.3-3.7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    {{ block.settings.verified_label }}
+                  </p>
+                {%- endif -%}
+
+                {%- if block.settings.review_title != blank -%}
+                  <p class="testimonials__quote-title">{{ block.settings.review_title }}</p>
+                {%- endif -%}
+
+                {%- if block.settings.review_text != blank -%}
+                  <div class="testimonials__quote-body rte">{{ block.settings.review_text }}</div>
+                {%- endif -%}
+
+                {%- if block.settings.incentivized -%}
+                  <p class="testimonials__badge testimonials__badge--incentivized">
+                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                      <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.3" />
+                      <path d="M8 5.2v3.6M8 10.6h.01" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+                    </svg>
+                    {{ block.settings.incentivized_label }}
+                  </p>
+                {%- endif -%}
+
+                <p class="testimonials__meta">
+                  {{- block.settings.location -}}
+                  {%- if block.settings.location != blank and block.settings.time_ago != blank -%}, {% endif -%}
+                  {{- block.settings.time_ago -}}
+                </p>
+              </li>
+            {%- endfor -%}
+          </ul>
+
+          <button
+            type="button"
+            class="testimonials__nav testimonials__nav--next"
+            aria-label="Next testimonials"
+          >
+            <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <path d="M7.5 4.5L13 10l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </div>
+
+        {%- if section.settings.enable_autoplay and section.settings.show_pause_button -%}
+          <div class="testimonials__controls">
+            <button
+              type="button"
+              class="testimonials__pause"
+              aria-pressed="false"
+              aria-label="Pause testimonials carousel"
+            >
+              <span class="testimonials__pause-icon" data-icon-pause aria-hidden="true">
+                <svg viewBox="0 0 16 16" focusable="false">
+                  <rect x="3" y="2" width="3" height="12" rx="0.5"/><rect x="10" y="2" width="3" height="12" rx="0.5"/>
+                </svg>
+              </span>
+              <span class="testimonials__pause-icon" data-icon-play hidden aria-hidden="true">
+                <svg viewBox="0 0 16 16" focusable="false">
+                  <path d="M4 2.5v11l9-5.5z"/>
+                </svg>
+              </span>
+              <span class="testimonials__pause-label" data-pause-label>
+                Pause
+              </span>
+            </button>
+          </div>
+        {%- endif -%}
+      </testimonials-carousel>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Testimonials carousel",
+  "tag": "section",
+  "class": "section",
+  "max_blocks": 12,
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Rating summary"
+    },
+    {
+      "type": "text",
+      "id": "rating_title",
+      "label": "Title",
+      "default": "Excellent"
+    },
+    {
+      "type": "text",
+      "id": "rating_value",
+      "label": "Rating value",
+      "default": "4.74",
+      "info": "A number between 0 and 5, e.g. 4.74"
+    },
+    {
+      "type": "text",
+      "id": "review_count_label",
+      "label": "Review count label",
+      "default": "27,359 reviews"
+    },
+    {
+      "type": "url",
+      "id": "rating_link",
+      "label": "Link (optional)"
+    },
+    {
+      "type": "checkbox",
+      "id": "rating_link_new_tab",
+      "label": "Open link in new tab",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Carousel behavior"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_autoplay",
+      "label": "Enable autoplay",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "label": "Autoplay speed",
+      "default": 5
+    },
+    {
+      "type": "checkbox",
+      "id": "show_pause_button",
+      "label": "Show pause/play button",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating_in_card",
+      "label": "Show star rating in each card",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Section background",
+      "info": "Optional. Falls back to color scheme if left blank."
+    },
+    {
+      "type": "color",
+      "id": "card_background",
+      "label": "Card background",
+      "info": "Optional. Falls back to color scheme if left blank."
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading / author text",
+      "info": "Optional. Falls back to color scheme if left blank."
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Review body text",
+      "info": "Optional. Falls back to color scheme if left blank."
+    },
+    {
+      "type": "color",
+      "id": "muted_color",
+      "label": "Meta / muted text",
+      "info": "Optional. Falls back to color scheme if left blank."
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "title_font_size_mobile",
+      "min": 12,
+      "max": 28,
+      "step": 1,
+      "unit": "px",
+      "label": "Summary title size (mobile)",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "title_font_size_tablet",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "label": "Summary title size (tablet)",
+      "default": 18
+    },
+    {
+      "type": "range",
+      "id": "title_font_size_desktop",
+      "min": 12,
+      "max": 36,
+      "step": 1,
+      "unit": "px",
+      "label": "Summary title size (desktop)",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "quote_font_size_mobile",
+      "min": 11,
+      "max": 22,
+      "step": 1,
+      "unit": "px",
+      "label": "Review text size (mobile)",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "quote_font_size_tablet",
+      "min": 11,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Review text size (tablet)",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "quote_font_size_desktop",
+      "min": 11,
+      "max": 26,
+      "step": 1,
+      "unit": "px",
+      "label": "Review text size (desktop)",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "author_font_size_mobile",
+      "min": 11,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Author name size (mobile)",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "author_font_size_tablet",
+      "min": 11,
+      "max": 22,
+      "step": 1,
+      "unit": "px",
+      "label": "Author name size (tablet)",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "author_font_size_desktop",
+      "min": 11,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Author name size (desktop)",
+      "default": 15
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding (mobile)",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_mobile",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding (mobile)",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "padding_top_tablet",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding (tablet)",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_tablet",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding (tablet)",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "padding_top_desktop",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding (desktop)",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom_desktop",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding (desktop)",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "Review",
+      "limit": 12,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "author_avatar",
+          "label": "Author avatar"
+        },
+        {
+          "type": "text",
+          "id": "author",
+          "label": "Author name",
+          "default": "Customer name"
+        },
+        {
+          "type": "range",
+          "id": "rating",
+          "label": "Rating",
+          "min": 0,
+          "max": 5,
+          "step": 0.5,
+          "default": 5
+        },
+        {
+          "type": "checkbox",
+          "id": "verified",
+          "label": "Show verified badge",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "verified_label",
+          "label": "Verified badge label",
+          "default": "Verified customer"
+        },
+        {
+          "type": "text",
+          "id": "review_title",
+          "label": "Review title (optional)",
+          "info": "Shown in italics above the review text"
+        },
+        {
+          "type": "richtext",
+          "id": "review_text",
+          "label": "Review text",
+          "default": "<p>This is a great product, I use it every day.</p>"
+        },
+        {
+          "type": "checkbox",
+          "id": "incentivized",
+          "label": "Show incentivized badge",
+          "default": false
+        },
+        {
+          "type": "text",
+          "id": "incentivized_label",
+          "label": "Incentivized badge label",
+          "default": "Incentivized"
+        },
+        {
+          "type": "text",
+          "id": "location",
+          "label": "Location",
+          "default": "City, Country"
+        },
+        {
+          "type": "text",
+          "id": "time_ago",
+          "label": "Time label",
+          "default": "10 hours ago"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Testimonials carousel",
+      "blocks": [
+        { "type": "review" },
+        { "type": "review" },
+        { "type": "review" },
+        { "type": "review" }
+      ]
+    }
+  ]
+}
+{% endschema %}

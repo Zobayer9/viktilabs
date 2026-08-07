@@ -1,0 +1,43 @@
+{%- liquid
+  assign rating = rating | times: 1.0
+  if rating < 0
+    assign rating = 0
+  endif
+  if rating > 5
+    assign rating = 5
+  endif
+  assign size_class = 'star-rating--small'
+  if size == 'large'
+    assign size_class = 'star-rating--large'
+  endif
+-%}
+
+<span
+  class="star-rating {{ size_class }}"
+  role="img"
+  aria-label="{{ products.product.rating.value | t: rating: rating | default: rating | append: ' out of 5 stars' }}"
+>
+  {%- for i in (1..5) -%}
+    {%- liquid
+      assign star_index = forloop.index0
+      assign fill = rating | minus: star_index
+      if fill > 1
+        assign fill = 1
+      endif
+      if fill < 0
+        assign fill = 0
+      endif
+      assign fill_percent = fill | times: 100
+    -%}
+    <span class="star-rating__star" aria-hidden="true">
+      <svg class="star-rating__icon star-rating__icon--empty" viewBox="0 0 20 20" focusable="false">
+        <path d="M10 1.5l2.6 5.6 6.1.6-4.6 4.1 1.3 6-5.4-3.1-5.4 3.1 1.3-6-4.6-4.1 6.1-.6z" />
+      </svg>
+      <span class="star-rating__fill" style="width: {{ fill_percent }}%;">
+        <svg class="star-rating__icon star-rating__icon--filled" viewBox="0 0 20 20" focusable="false">
+          <path d="M10 1.5l2.6 5.6 6.1.6-4.6 4.1 1.3 6-5.4-3.1-5.4 3.1 1.3-6-4.6-4.1 6.1-.6z" />
+        </svg>
+      </span>
+    </span>
+  {%- endfor -%}
+</span>
