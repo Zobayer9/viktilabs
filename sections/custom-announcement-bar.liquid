@@ -1,43 +1,71 @@
 {% liquid
   assign speed_ms = section.settings.autoplay_speed | times: 1000
+  assign show_rating = section.settings.show_rating
+  assign rating_raw = section.settings.rating_value | times: 1.0
+  if rating_raw < 0
+    assign rating_raw = 0.0
+  endif
+  if rating_raw > 5
+    assign rating_raw = 5.0
+  endif
+  assign star_fill_default = section.settings.star_fill_color | default: section.settings.text_color
+  assign star_empty_default = section.settings.star_empty_color | default: 'rgba(255,255,255,.35)'
+  assign unique_id = section.id
+  assign blocks_size = section.blocks.size
+  assign is_playing = section.settings.autoplay
 %}
+
 {{ 'custom-announcement-bar.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'custom-announcement-bar.js' | asset_url }}" defer></script>
 
-<script
-  src="{{ 'custom-announcement-bar.js' | asset_url }}"
-  defer
-></script>
-
-<section
-  class="announcement-bar"
-  aria-label="Store announcements"
-  style="
+{%- style -%}
+  #shopify-section-{{ section.id }} .announcement-bar {
     --bar-bg: {{ section.settings.bg_color }};
     --bar-text: {{ section.settings.text_color }};
     --bar-accent: {{ section.settings.text_color }};
     --bar-font-weight: {{ section.settings.font_weight }};
-    --bar-font-size: {{ section.settings.font_size }}px;
-    --bar-padding-y: {{ section.settings.section_padding }}px;
-    --bar-star-fill: {{ section.settings.star_fill_color | default: section.settings.text_color }};
-    --bar-star-empty: {{ section.settings.star_empty_color | default: 'rgba(255,255,255,.35)' }};
-  "
+    --bar-star-fill: {{ star_fill_default }};
+    --bar-star-empty: {{ star_empty_default }};
+    --bar-font-size: {{ section.settings.font_size_mobile }}px;
+    --bar-padding-y: {{ section.settings.section_padding_mobile }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    #shopify-section-{{ section.id }} .announcement-bar {
+      --bar-font-size: {{ section.settings.font_size_tablet }}px;
+      --bar-padding-y: {{ section.settings.section_padding_tablet }}px;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    #shopify-section-{{ section.id }} .announcement-bar {
+      --bar-font-size: {{ section.settings.font_size_desktop }}px;
+      --bar-padding-y: {{ section.settings.section_padding_desktop }}px;
+    }
+  }
+{%- endstyle -%}
+
+<section
+  class="announcement-bar"
+  aria-label="Store announcements"
 >
-  <div class="bar_wrapper">
+  {% comment %} SVG sprite for stars — avoids repeating path data {% endcomment %}
+  <svg class="sr-only" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="bar-star-{{ unique_id }}" viewBox="0 0 20 20">
+        <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.8L10 14.77l-5.2 2.75.99-5.8-4.21-4.1 5.82-.85L10 1.5z"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <div class="bar_wrapper page-width">
     <div
       class="bar_container"
       data-nav-arrows="{{ section.settings.show_nav_arrows }}"
     >
+      {% comment %} Rating / Trust Badge {% endcomment %}
       <div class="bar_rating">
-        {%- if section.settings.show_rating -%}
-          {%- liquid
-            assign rating_raw = section.settings.rating_value | times: 1.0
-            if rating_raw < 0
-              assign rating_raw = 0.0
-            endif
-            if rating_raw > 5
-              assign rating_raw = 5.0
-            endif
-          -%}
+        {%- if show_rating -%}
           <span
             class="bar_stars"
             role="img"
@@ -57,23 +85,24 @@
               <span class="bar_star" aria-hidden="true">
                 <span class="bar_star_bg">
                   <svg viewBox="0 0 20 20" focusable="false">
-                    <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.8L10 14.77l-5.2 2.75.99-5.8-4.21-4.1 5.82-.85L10 1.5z"/>
+                    <use href="#bar-star-{{ unique_id }}"/>
                   </svg>
                 </span>
                 <span class="bar_star_fill" style="--star-fill: {{ star_percent }}%;">
                   <svg viewBox="0 0 20 20" focusable="false">
-                    <path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1.99 5.8L10 14.77l-5.2 2.75.99-5.8-4.21-4.1 5.82-.85L10 1.5z"/>
+                    <use href="#bar-star-{{ unique_id }}"/>
                   </svg>
                 </span>
               </span>
             {%- endfor -%}
           </span>
           {%- if section.settings.rating_text != blank -%}
-            <span class="bar_rating_text">{{ section.settings.rating_text }}</span>
+            <span class="bar_rating_text">{{ section.settings.rating_text | escape }}</span>
           {%- endif -%}
         {%- endif -%}
       </div>
 
+      {% comment %} Carousel {% endcomment %}
       {%- if section.blocks.size > 0 -%}
         <div
           class="bar_carousel"
@@ -82,72 +111,137 @@
           data-speed="{{ speed_ms }}"
           role="region"
           aria-roledescription="carousel"
-          aria-label="Store announcements "
+          aria-label="Store announcements"
         >
+          {%- if section.settings.show_nav_arrows -%}
+            <button
+              type="button"
+              class="bar_nav_btn bar_nav_prev"
+              aria-label="Previous announcement"
+              aria-controls="bar-slide-{{ unique_id }}-1"
+            >
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </button>
+          {%- endif -%}
+
           <div class="bar_track_viewport">
             {%- for block in section.blocks -%}
               {%- assign slide_index = forloop.index -%}
+              {%- assign slide_id = 'bar-slide-' | append: unique_id | append: '-' | append: slide_index -%}
+              {%- assign is_active = forloop.first -%}
+
               {%- if block.settings.link != blank -%}
                 <a
                   href="{{ block.settings.link }}"
-                  id="bar-slide-{{ slide_index }}"
-                  class="bar_slide bar_slide--link{% if forloop.first %} is-active{% endif %}"
+                  id="{{ slide_id }}"
+                  class="bar_slide bar_slide--link{% if is_active %} is-active{% endif %}"
                   role="group"
                   aria-roledescription="slide"
-                  aria-label="{{ slide_index }} of {{ section.blocks.size }}"
-                  aria-hidden="{% unless forloop.first %}true{% else %}false{% endunless %}"
-                  tabindex="{% unless forloop.first %}-1{% else %}0{% endunless %}"
+                  aria-label="{{ slide_index }} of {{ blocks_size }}"
+                  aria-hidden="{% if is_active %}false{% else %}true{% endif %}"
+                  tabindex="{% if is_active %}0{% else %}-1{% endif %}"
                   {{ block.shopify_attributes }}
                 >
-                  {{ block.settings.text }}
+                  {{ block.settings.text | escape }}
                 </a>
               {%- else -%}
                 <div
-                  id="bar-slide-{{ slide_index }}"
-                  class="bar_slide{% if forloop.first %} is-active{% endif %}"
+                  id="{{ slide_id }}"
+                  class="bar_slide{% if is_active %} is-active{% endif %}"
                   role="group"
                   aria-roledescription="slide"
-                  aria-label="{{ slide_index }} of {{ section.blocks.size }}"
-                  aria-hidden="{% unless forloop.first %}true{% else %}false{% endunless %}"
+                  aria-label="{{ slide_index }} of {{ blocks_size }}"
+                  aria-hidden="{% if is_active %}false{% else %}true{% endif %}"
+                  tabindex="{% if is_active %}0{% else %}-1{% endif %}"
                   {{ block.shopify_attributes }}
                 >
-                  {{ block.settings.text }}
+                  {{ block.settings.text | escape }}
                 </div>
               {%- endif -%}
             {%- endfor -%}
           </div>
 
-          <span class="sr-only" role="status" aria-live="polite" data-carousel-status></span>
+          {%- if section.settings.show_nav_arrows -%}
+            <button
+              type="button"
+              class="bar_nav_btn bar_nav_next"
+              aria-label="Next announcement"
+              aria-controls="bar-slide-{{ unique_id }}-1"
+            >
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </button>
+          {%- endif -%}
+
+          <button
+            type="button"
+            class="bar_nav_btn bar_play_toggle"
+            aria-label="{% if is_playing %}Pause{% else %}Play{% endif %} announcements"
+            aria-pressed="{% if is_playing %}true{% else %}false{% endif %}"
+            data-playing="{% if is_playing %}true{% else %}false{% endif %}"
+          >
+            <svg class="icon-play" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <svg class="icon-pause" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+          </button>
+
+          <span
+            class="sr-only"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            data-carousel-status
+          >
+            {%- if blocks_size > 0 -%}Announcement 1 of {{ blocks_size }}{%- endif -%}
+          </span>
         </div>
       {%- endif -%}
 
+      {% comment %} Right-side links {% endcomment %}
       <div class="bar_links">
         {%- if section.settings.show_contact and section.settings.contact_text != blank -%}
-          <a
-            href="{{ section.settings.contact_link | default: '#' }}"
-            class="bar_link_text"
-          >
-            {{- section.settings.contact_text -}}
-          </a>
+          {%- if section.settings.contact_link != blank -%}
+            <a href="{{ section.settings.contact_link }}" class="bar_link_text">
+              {{- section.settings.contact_text | escape -}}
+            </a>
+          {%- else -%}
+            <span class="bar_link_text">{{ section.settings.contact_text | escape }}</span>
+          {%- endif -%}
         {%- endif -%}
 
         {%- if section.settings.show_faq and section.settings.faq_text != blank -%}
-          <a
-            href="{{ section.settings.faq_link | default: '#' }}"
-            class="bar_link_text"
-          >
-            {{- section.settings.faq_text -}}
-          </a>
+          {%- if section.settings.faq_link != blank -%}
+            <a href="{{ section.settings.faq_link }}" class="bar_link_text">
+              {{- section.settings.faq_text | escape -}}
+            </a>
+          {%- else -%}
+            <span class="bar_link_text">{{ section.settings.faq_text | escape }}</span>
+          {%- endif -%}
         {%- endif -%}
 
         {%- if section.settings.icon != blank -%}
-          <a href="{{ section.settings.icon_link | default: '#' }}">
+          {%- assign icon_alt = section.settings.icon.alt | escape -%}
+          {%- if section.settings.icon_link != blank -%}
+            <a href="{{ section.settings.icon_link }}">
+              {{
+                section.settings.icon
+                | image_url: width: 64
+                | image_tag: loading: 'lazy', width: 32, alt: icon_alt, class: 'bar_icon_img'
+              }}
+            </a>
+          {%- else -%}
             {{
               section.settings.icon
               | image_url: width: 64
-              | image_tag: loading: 'lazy', width: 32, alt: section.settings.icon.alt
+              | image_tag: loading: 'lazy', width: 32, alt: icon_alt, class: 'bar_icon_img'
             }}
-          </a>
+          {%- endif -%}
         {%- endif -%}
       </div>
     </div>
@@ -156,9 +250,10 @@
 
 {% schema %}
 {
-  "name": "Announcement/USP",
+  "name": "Announcement / USP",
   "tag": "section",
   "class": "section-announcement-bar",
+  "max_blocks": 6,
   "settings": [
     {
       "type": "header",
@@ -190,18 +285,58 @@
     },
     {
       "type": "range",
-      "id": "font_size",
-      "label": "Font size",
-      "min": 11,
+      "id": "font_size_mobile",
+      "label": "Font size (mobile)",
+      "min": 10,
       "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "font_size_tablet",
+      "label": "Font size (tablet)",
+      "min": 10,
+      "max": 22,
+      "step": 1,
+      "unit": "px",
+      "default": 13
+    },
+    {
+      "type": "range",
+      "id": "font_size_desktop",
+      "label": "Font size (desktop)",
+      "min": 10,
+      "max": 24,
       "step": 1,
       "unit": "px",
       "default": 14
     },
     {
       "type": "range",
-      "id": "section_padding",
-      "label": "Vertical padding",
+      "id": "section_padding_mobile",
+      "label": "Vertical padding (mobile)",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "section_padding_tablet",
+      "label": "Vertical padding (tablet)",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "section_padding_desktop",
+      "label": "Vertical padding (desktop)",
       "min": 0,
       "max": 40,
       "step": 1,
@@ -238,7 +373,7 @@
       "type": "color",
       "id": "star_empty_color",
       "label": "Star background color",
-      "default": "#8a8a8a"
+      "default": "rgba(255,255,255,0.35)"
     },
     {
       "type": "text",
@@ -269,12 +404,8 @@
     {
       "type": "checkbox",
       "id": "show_nav_arrows",
-      "label": "Show previous/next arrows",
+      "label": "Show previous / next arrows",
       "default": true
-    },
-    {
-      "type": "header",
-      "content": "Accessibility labels"
     },
     {
       "type": "header",
@@ -317,7 +448,8 @@
     {
       "type": "image_picker",
       "id": "icon",
-      "label": "Icon / logo image"
+      "label": "Icon / logo image",
+      "info": "Upload a small icon (e.g., trust badge, payment logo). Recommended height: 16–20 px."
     },
     {
       "type": "url",
@@ -346,10 +478,10 @@
   ],
   "presets": [
     {
-      "name": "Announcement/USP",
+      "name": "Announcement / USP",
       "blocks": [
-        { "type": "announcement", "settings": { "text": "Free shipping from€49 *" } },
-        { "type": "announcement", "settings": { "text": "New:Daily Greens Powder" } }
+        { "type": "announcement", "settings": { "text": "Free shipping from €49 *" } },
+        { "type": "announcement", "settings": { "text": "New: Daily Greens Powder" } }
       ]
     }
   ]

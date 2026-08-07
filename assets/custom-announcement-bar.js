@@ -1,160 +1,265 @@
 (function () {
-    'use strict';
+  'use strict';
 
-    function initAnnouncementCarousel(root) {
-      var slides = Array.prototype.slice.call(root.querySelectorAll('.bar_slide'));
-      if (slides.length === 0) return;
+  const SELECTORS = {
+    root: '[data-announcement-carousel]',
+    slide: '.bar_slide',
+    prev: '[data-carousel-prev]',
+    next: '[data-carousel-next]',
+    toggle: '[data-carousel-toggle]',
+    status: '[data-carousel-status]',
+    section: '[class*="announcement-bar-"]',
+  };
 
-      var prevBtn = root.querySelector('[data-carousel-prev]');
-      var nextBtn = root.querySelector('[data-carousel-next]');
-      var toggleBtn = root.querySelector('[data-carousel-toggle]');
-      var statusEl = root.querySelector('[data-carousel-status]');
+  const ATTRIBUTES = {
+    autoplay: 'data-autoplay',
+    speed: 'data-speed',
+  };
 
-      var autoplayEnabled = root.getAttribute('data-autoplay') === 'true';
-      var speed = parseInt(root.getAttribute('data-speed'), 10) || 5000;
-      var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const CLASSES = {
+    active: 'is-active',
+  };
 
-      var current = 0;
-      var timer = null;
-      var isPlaying = autoplayEnabled && slides.length > 1 && !prefersReducedMotion;
+  const KEYS = {
+    NEXT: 'ArrowRight',
+    PREV: 'ArrowLeft',
+  };
 
-      function announce(text) {
-        if (statusEl) statusEl.textContent = text;
-      }
+  const ARIA_LIVE = {
+    playing: 'off',
+    paused: 'polite',
+  };
 
-      function goTo(index, opts) {
-        var silent = opts && opts.silent;
-        var prevIndex = current;
-        current = (index + slides.length) % slides.length;
+  const TOGGLE_LABEL = {
+    playing: 'Pause announcements',
+    paused: 'Play announcements',
+  };
 
-        slides[prevIndex].classList.remove('is-active');
-        slides[prevIndex].setAttribute('aria-hidden', 'true');
-        slides[prevIndex].setAttribute('tabindex', '-1');
+  const DEFAULT_SPEED = 5000;
+  const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
-        slides[current].classList.add('is-active');
-        slides[current].setAttribute('aria-hidden', 'false');
-        slides[current].setAttribute('tabindex', '0');
+  class AnnouncementCarousel {
+    static ROOT_SELECTOR = SELECTORS.root;
+    static INSTANCE_KEY = 'announcementCarousel';
 
-        if (!silent) {
-          announce((slides[current].textContent || '').trim());
-        }
-      }
+    constructor(root) {
+      this.root = root;
+      this.slides = Array.from(root.querySelectorAll(SELECTORS.slide));
 
-      function next() { goTo(current + 1); }
-      function prev() { goTo(current - 1); }
+      // Mark the element as initialized immediately, even if there are no
+      // slides to operate on, mirroring the original "already handled" guard.
+      root[AnnouncementCarousel.INSTANCE_KEY] = this;
+      if (this.slides.length === 0) return;
 
-      function play() {
-        if (slides.length <= 1 || prefersReducedMotion) return;
-        stop();
-        timer = window.setInterval(next, speed);
-        isPlaying = true;
-        if (statusEl) statusEl.setAttribute('aria-live', 'off');
-        if (toggleBtn) {
-          toggleBtn.setAttribute('data-playing', 'true');
-          toggleBtn.setAttribute('aria-pressed', 'true');
-          toggleBtn.setAttribute('aria-label', 'Pause announcements');
-        }
-      }
+      this.prevBtn = root.querySelector(SELECTORS.prev);
+      this.nextBtn = root.querySelector(SELECTORS.next);
+      this.toggleBtn = root.querySelector(SELECTORS.toggle);
+      this.statusEl = root.querySelector(SELECTORS.status);
 
-      function stop() {
-        if (timer) {
-          window.clearInterval(timer);
-          timer = null;
-        }
-        isPlaying = false;
-        if (statusEl) statusEl.setAttribute('aria-live', 'polite');
-        if (toggleBtn) {
-          toggleBtn.setAttribute('data-playing', 'false');
-          toggleBtn.setAttribute('aria-pressed', 'false');
-          toggleBtn.setAttribute('aria-label', 'Play announcements');
-        }
-      }
+      this.autoplayEnabled = root.getAttribute(ATTRIBUTES.autoplay) === 'true';
+      this.speed = parseInt(root.getAttribute(ATTRIBUTES.speed), 10) || DEFAULT_SPEED;
+      this.prefersReducedMotion = window.matchMedia(REDUCED_MOTION_QUERY).matches;
 
-      if (nextBtn) nextBtn.addEventListener('click', function () { stop(); next(); });
-      if (prevBtn) prevBtn.addEventListener('click', function () { stop(); prev(); });
-      if (toggleBtn) {
-        toggleBtn.addEventListener('click', function () {
-          if (isPlaying) { stop(); } else { play(); }
-        });
-      }
+      this.current = 0;
+      this.timer = null;
+      this.isPlaying = false;
 
-      // Keyboard support when carousel region has focus
-      root.addEventListener('keydown', function (e) {
-        if (e.key === 'ArrowRight') { stop(); next(); }
-        if (e.key === 'ArrowLeft') { stop(); prev(); }
-      });
+      this._attachEvents();
 
-      // Pause on hover / focus, resume on mouse leave / blur
-      root.addEventListener('mouseenter', function () { if (autoplayEnabled) stop(); });
-      root.addEventListener('mouseleave', function () { if (autoplayEnabled && !prefersReducedMotion) play(); });
-      root.addEventListener('focusin', function () { if (autoplayEnabled) stop(); });
-      root.addEventListener('focusout', function (e) {
-        if (autoplayEnabled && !prefersReducedMotion && !root.contains(e.relatedTarget)) play();
-      });
-
-      // Pause when tab is not visible
-      document.addEventListener('visibilitychange', function () {
-        if (document.hidden) {
-          stop();
-        } else if (autoplayEnabled && !prefersReducedMotion) {
-          play();
-        }
-      });
-
-      goTo(0, { silent: true });
-      if (isPlaying) play();
-
-      // Theme editor: pause + reveal the slide being edited
-      root.__announcementApi = { goTo: goTo, stop: stop, play: play };
+      this.goTo(0, { silent: true });
+      if (this.canAutoplay) this.play();
     }
 
-    function initAll(context) {
-      var carousels = (context || document).querySelectorAll('[data-announcement-carousel]');
-      carousels.forEach(function (el) {
-        if (!el.__announcementInitialized) {
-          el.__announcementInitialized = true;
-          initAnnouncementCarousel(el);
+    /** Single source of truth for whether autoplay should be running. */
+    get canAutoplay() {
+      return this.autoplayEnabled && this.slides.length > 1 && !this.prefersReducedMotion;
+    }
+
+    announce(text) {
+      if (this.statusEl) this.statusEl.textContent = text;
+    }
+
+    goTo(index, { silent = false } = {}) {
+      const previousIndex = this.current;
+      this.current = (index + this.slides.length) % this.slides.length;
+
+      this._setSlideState(this.slides[previousIndex], false);
+      this._setSlideState(this.slides[this.current], true);
+
+      if (!silent) {
+        this.announce((this.slides[this.current].textContent || '').trim());
+      }
+    }
+
+    _setSlideState(slide, isActive) {
+      slide.classList.toggle(CLASSES.active, isActive);
+      slide.setAttribute('aria-hidden', String(!isActive));
+      slide.setAttribute('tabindex', isActive ? '0' : '-1');
+    }
+
+    next = () => this.goTo(this.current + 1);
+
+    prev = () => this.goTo(this.current - 1);
+
+    play() {
+      if (this.slides.length <= 1 || this.prefersReducedMotion) return;
+
+      this.stop();
+      this.timer = window.setInterval(this.next, this.speed);
+      this.isPlaying = true;
+      this._updatePlayState(true);
+    }
+
+    stop() {
+      if (this.timer) {
+        window.clearInterval(this.timer);
+        this.timer = null;
+      }
+      this.isPlaying = false;
+      this._updatePlayState(false);
+    }
+
+    _updatePlayState(isPlaying) {
+      if (this.statusEl) {
+        this.statusEl.setAttribute('aria-live', isPlaying ? ARIA_LIVE.playing : ARIA_LIVE.paused);
+      }
+      if (this.toggleBtn) {
+        this.toggleBtn.setAttribute('data-playing', String(isPlaying));
+        this.toggleBtn.setAttribute('aria-pressed', String(isPlaying));
+        this.toggleBtn.setAttribute('aria-label', isPlaying ? TOGGLE_LABEL.playing : TOGGLE_LABEL.paused);
+      }
+    }
+
+    handleNextClick = () => {
+      this.stop();
+      this.next();
+    };
+
+    handlePrevClick = () => {
+      this.stop();
+      this.prev();
+    };
+
+    handleToggleClick = () => {
+      if (this.isPlaying) {
+        this.stop();
+      } else {
+        this.play();
+      }
+    };
+
+    handleKeydown = (event) => {
+      if (event.key === KEYS.NEXT) this.handleNextClick();
+      if (event.key === KEYS.PREV) this.handlePrevClick();
+    };
+
+    handleMouseEnter = () => {
+      if (this.autoplayEnabled) this.stop();
+    };
+
+    handleMouseLeave = () => {
+      if (this.canAutoplay) this.play();
+    };
+
+    handleFocusIn = () => {
+      if (this.autoplayEnabled) this.stop();
+    };
+
+    handleFocusOut = (event) => {
+      if (this.canAutoplay && !this.root.contains(event.relatedTarget)) this.play();
+    };
+
+    handleVisibilityChange = () => {
+      if (document.hidden) {
+        this.stop();
+      } else if (this.canAutoplay) {
+        this.play();
+      }
+    };
+
+    _attachEvents() {
+      if (this.nextBtn) this.nextBtn.addEventListener('click', this.handleNextClick);
+      if (this.prevBtn) this.prevBtn.addEventListener('click', this.handlePrevClick);
+      if (this.toggleBtn) this.toggleBtn.addEventListener('click', this.handleToggleClick);
+
+      this.root.addEventListener('keydown', this.handleKeydown);
+      this.root.addEventListener('mouseenter', this.handleMouseEnter);
+      this.root.addEventListener('mouseleave', this.handleMouseLeave);
+      this.root.addEventListener('focusin', this.handleFocusIn);
+      this.root.addEventListener('focusout', this.handleFocusOut);
+
+      document.addEventListener('visibilitychange', this.handleVisibilityChange);
+    }
+
+    destroy() {
+      this.stop();
+
+      if (this.nextBtn) this.nextBtn.removeEventListener('click', this.handleNextClick);
+      if (this.prevBtn) this.prevBtn.removeEventListener('click', this.handlePrevClick);
+      if (this.toggleBtn) this.toggleBtn.removeEventListener('click', this.handleToggleClick);
+
+      this.root.removeEventListener('keydown', this.handleKeydown);
+      this.root.removeEventListener('mouseenter', this.handleMouseEnter);
+      this.root.removeEventListener('mouseleave', this.handleMouseLeave);
+      this.root.removeEventListener('focusin', this.handleFocusIn);
+      this.root.removeEventListener('focusout', this.handleFocusOut);
+
+      document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+
+      delete this.root[AnnouncementCarousel.INSTANCE_KEY];
+    }
+
+    static getInstance(root) {
+      return root ? root[AnnouncementCarousel.INSTANCE_KEY] : null;
+    }
+
+    static initAll(context = document) {
+      const carousels = context.querySelectorAll(AnnouncementCarousel.ROOT_SELECTOR);
+      carousels.forEach((root) => {
+        if (!AnnouncementCarousel.getInstance(root)) {
+          new AnnouncementCarousel(root);
         }
       });
     }
+  }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function () { initAll(document); });
-    } else {
-      initAll(document);
-    }
+  function ready() {
+    AnnouncementCarousel.initAll(document);
+  }
 
-    // Shopify theme editor integration
-    document.addEventListener('shopify:section:load', function (event) {
-      initAll(event.target);
-    });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ready);
+  } else {
+    ready();
+  }
 
-    document.addEventListener('shopify:block:select', function (event) {
-      var blockEl = event.target;
-      var carousel = blockEl.closest('[data-announcement-carousel]') ||
-        (blockEl.querySelector ? blockEl.querySelector('[data-announcement-carousel]') : null);
-      var section = blockEl.closest('[class*="announcement-bar-"]');
-      if (section) {
-        var carouselInSection = section.querySelector('[data-announcement-carousel]');
-        if (carouselInSection && carouselInSection.__announcementApi) {
-          var slideEl = section.querySelector('#' + blockEl.id + '') || blockEl;
-          var index = Array.prototype.indexOf.call(
-            carouselInSection.querySelectorAll('.bar_slide'),
-            slideEl
-          );
-          carouselInSection.__announcementApi.stop();
-          if (index > -1) carouselInSection.__announcementApi.goTo(index);
-        }
-      }
-    });
+  // Shopify theme editor integration
+  document.addEventListener('shopify:section:load', (event) => {
+    AnnouncementCarousel.initAll(event.target);
+  });
 
-    document.addEventListener('shopify:block:deselect', function (event) {
-      var section = event.target.closest('[class*="announcement-bar-"]');
-      if (section) {
-        var carouselInSection = section.querySelector('[data-announcement-carousel]');
-        if (carouselInSection && carouselInSection.getAttribute('data-autoplay') === 'true') {
-          carouselInSection.__announcementApi.play();
-        }
-      }
-    });
-  })();
+  document.addEventListener('shopify:block:select', (event) => {
+    const blockEl = event.target;
+    const section = blockEl.closest(SELECTORS.section);
+    if (!section) return;
+
+    const carouselRoot = section.querySelector(SELECTORS.root);
+    const instance = AnnouncementCarousel.getInstance(carouselRoot);
+    if (!instance) return;
+
+    const slideEl = section.querySelector(`#${blockEl.id}`) || blockEl;
+    const index = instance.slides.indexOf(slideEl);
+
+    instance.stop();
+    if (index > -1) instance.goTo(index);
+  });
+
+  document.addEventListener('shopify:block:deselect', (event) => {
+    const section = event.target.closest(SELECTORS.section);
+    if (!section) return;
+
+    const carouselRoot = section.querySelector(SELECTORS.root);
+    const instance = AnnouncementCarousel.getInstance(carouselRoot);
+    if (instance && instance.autoplayEnabled) instance.play();
+  });
+})();

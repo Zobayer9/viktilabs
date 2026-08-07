@@ -1,14 +1,16 @@
-.announcement-bar .bar_wrapper{
+.announcement-bar{
     background:var(--bar-bg);
+    padding:var(--bar-padding-y) 16px;
     color:var(--bar-text);
     font-weight:var(--bar-font-weight);
     font-size:var(--bar-font-size);
-    padding:var(--bar-padding-y) 16px;
+}
+
+.announcement-bar .bar_wrapper{
     width:100%;
 }
 
 .announcement-bar .bar_container{
-    max-width:1380px;
     margin:0 auto;
     display:grid;
     grid-template-columns:1fr minmax(0,2fr) 1fr;
