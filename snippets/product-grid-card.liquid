@@ -1,0 +1,130 @@
+{%- comment -%}
+  Renders a single product card for the collection product grid.
+  Accepts:
+  - product: {Object} product to render
+  - lazy: {Boolean} whether the image should lazy-load
+{%- endcomment -%}
+
+{%- liquid
+  assign card_image = product.featured_media.preview_image
+  assign compare_at = product.compare_at_price
+  assign on_sale = false
+  if compare_at > product.price
+    assign on_sale = true
+    assign discount_percent = compare_at | minus: product.price | times: 100.0 | divided_by: compare_at | round
+  endif
+
+  assign is_bestseller = false
+  assign is_new = false
+  if product.tags contains 'bestseller'
+    assign is_bestseller = true
+  endif
+  if product.tags contains 'new'
+    assign is_new = true
+  endif
+
+  assign img_loading = 'lazy'
+  assign img_fetchpriority = 'auto'
+  if lazy == false
+    assign img_loading = 'eager'
+    assign img_fetchpriority = 'high'
+  endif
+
+  assign rating = product.metafields.reviews.rating
+  assign rating_count = product.metafields.reviews.rating_count.value
+
+  assign quick_add_variant = product.selected_or_first_available_variant
+-%}
+
+<div class="product-grid-card">
+  <a href="{{ product.url }}" class="product-grid-card__media-link" tabindex="-1" aria-hidden="true">
+    <div class="product-grid-card__media">
+      {%- if is_bestseller -%}
+        <span class="product-grid-card__badge product-grid-card__badge--bestseller">Bestseller</span>
+      {%- elsif on_sale -%}
+        <span class="product-grid-card__badge product-grid-card__badge--sale">Save {{ discount_percent }}%</span>
+      {%- elsif is_new -%}
+        <span class="product-grid-card__badge product-grid-card__badge--new">New</span>
+      {%- endif -%}
+
+      {%- if card_image -%}
+        {{
+          card_image
+          | image_url: width: 700
+          | image_tag:
+            loading: img_loading,
+            fetchpriority: img_fetchpriority,
+            widths: '275, 400, 550, 700',
+            sizes: '(min-width: 990px) 25vw, (min-width: 750px) 33vw, 50vw',
+            alt: product.featured_image.alt | default: product.title,
+            class: 'product-grid-card__image'
+        }}
+      {%- else -%}
+        {{ 'product-1' | placeholder_svg_tag: 'product-grid-card__image product-grid-card__image--placeholder' }}
+      {%- endif -%}
+    </div>
+  </a>
+
+  <div class="product-grid-card__content">
+    {%- if rating != blank -%}
+      <div
+        class="product-grid-card__rating"
+        role="img"
+        aria-label="Rated {{ rating.value }} out of {{ rating.scale_max }} stars{% if rating_count %}, {{ rating_count }} reviews{% endif %}"
+      >
+        <span
+          class="product-grid-card__stars"
+          style="--rating: {{ rating.value }}; --rating-max: {{ rating.scale_max }};"
+          aria-hidden="true"
+        ></span>
+        {%- if rating_count -%}
+          <span class="product-grid-card__rating-count" aria-hidden="true">({{ rating_count }})</span>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <h3 class="product-grid-card__title">
+      <a href="{{ product.url }}">{{ product.title }}</a>
+    </h3>
+
+    <div class="product-grid-card__price">
+      {%- if product.price_varies -%}
+        <span class="product-grid-card__price-from">From</span>
+        <span class="product-grid-card__price-current">{{ product.price_min | money }}</span>
+      {%- else -%}
+        {%- if on_sale -%}
+          <span class="product-grid-card__price-current product-grid-card__price-current--sale">{{ product.price | money }}</span>
+          <span class="product-grid-card__price-compare">{{ compare_at | money }}</span>
+        {%- else -%}
+          <span class="product-grid-card__price-current">{{ product.price | money }}</span>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+
+    {%- if product.available -%}
+      <p class="product-grid-card__availability">In stock</p>
+    {%- else -%}
+      <p class="product-grid-card__availability product-grid-card__availability--sold-out">Sold out</p>
+    {%- endif -%}
+
+    {%- if product.has_only_default_variant and quick_add_variant.available -%}
+      <button
+        type="button"
+        class="product-grid-card__add-button"
+        data-add-to-cart
+        data-variant-id="{{ quick_add_variant.id }}"
+        data-adding-text="Adding…"
+        data-added-text="Added"
+        data-error-text="Try again"
+      >
+        Add to cart
+      </button>
+    {%- elsif product.available -%}
+      <a href="{{ product.url }}" class="product-grid-card__add-button product-grid-card__add-button--link">
+        Choose options
+      </a>
+    {%- else -%}
+      <button type="button" class="product-grid-card__add-button" disabled>Sold out</button>
+    {%- endif -%}
+  </div>
+</div>

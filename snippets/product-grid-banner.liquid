@@ -1,0 +1,53 @@
+
+{%- liquid
+  assign heading = block.settings.heading
+  assign text = block.settings.text
+  assign button_label = block.settings.button_label
+  assign button_link = block.settings.button_link
+  assign image = block.settings.image
+  assign position_class = 'product-grid-banner--image-right'
+  if block.settings.image_position == 'left'
+    assign position_class = 'product-grid-banner--image-left'
+  endif
+-%}
+
+<div
+  class="product-grid-banner {{ position_class }}"
+  style="
+    {% if block.settings.background_color != blank %}background-color: {{ block.settings.background_color }};{% endif %}
+    {% if block.settings.height != blank %}--banner-height: {{ block.settings.height }}px;{% endif %}
+  "
+>
+  <div class="product-grid-banner__content">
+    {%- if heading != blank -%}
+      <p class="product-grid-banner__heading">{{ heading }}</p>
+    {%- endif -%}
+    {%- if text != blank -%}
+      <div class="product-grid-banner__text">{{ text }}</div>
+    {%- endif -%}
+    {%- if button_label != blank -%}
+      <a
+        href="{{ button_link | default: '#' }}"
+        class="product-grid-banner__button"
+        {% if button_link == blank %}aria-disabled="true" tabindex="-1"{% endif %}
+      >
+        {{ button_label }}
+      </a>
+    {%- endif -%}
+  </div>
+
+  {%- if image -%}
+    <div class="product-grid-banner__media">
+      {{
+        image
+        | image_url: width: 1200
+        | image_tag:
+          loading: 'lazy',
+          widths: '400, 700, 1000, 1200',
+          sizes: '(min-width: 750px) 50vw, 100vw',
+          alt: heading | default: 'Collection banner',
+          class: 'product-grid-banner__image'
+      }}
+    </div>
+  {%- endif -%}
+</div>
